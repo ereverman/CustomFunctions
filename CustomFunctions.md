@@ -144,3 +144,47 @@ eQTL_PercentVariance <- function(GENE_LIST, EXP_DF, HAP_DF, CHR_POS){
   big.Effects <- do.call(rbind, PosList)
 }
 ```
+
+
+Function for combining sequencing files (shell)
+```
+for file in *L00{1,5}*.gz
+do
+  sample=${file%_S*_*.fastq.gz}
+  zcat ${sample}_*.fastq.gz >> ../combined/${sample}.fastq.gz
+done
+```
+
+
+To subsample RNAseq files build this .py script:
+```
+import sys, random, itertools
+import gzip
+import HTSeq
+
+fraction = float( sys.argv[1] )
+fileR1 = gzip.open( sys.argv[2], "rb" )
+fileR2 = gzip.open( sys.argv[3], "rb" )
+in1 = iter( HTSeq.FastqReader( fileR1 ) )
+in2 = iter( HTSeq.FastqReader( fileR2 ) )
+out1 = gzip.open( sys.argv[4], "wb" )
+out2 = gzip.open( sys.argv[5], "wb" )
+
+for read1, read2 in itertools.izip( in1, in2 ):
+   if random.random() < fraction:
+      read1.write_to_fastq_file( out1 )
+      read2.write_to_fastq_file( out2 )
+
+out1.close()
+out2.close()
+
+
+
+# To Implement, use:
+python subsamplePE.py 0.25 ../data/filtered/Cu_22325_S20.R1.filt.fastq.gz ../data/filtered/Cu_22325_S20.R2.filt.fastq.gz ../data/subset8mil/Cu_22325_S20.sub.R1.filt.fastq.gz ../data/subset8mil/Cu_22325_S20.sub.R2.filt.fastq.gz
+
+
+Files are called subsamplePE.py and finishingSubsetting.sh
+```
+
+
