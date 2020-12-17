@@ -188,3 +188,26 @@ Files are called subsamplePE.py and finishingSubsetting.sh
 ```
 
 
+Regress out PCs for eQTL file prep:
+```
+ExtractResiduals <- function(QNORM, TARGETPCs){
+  index_list = list()
+  for(i in 1:ncol(QNORM)) {
+    # EXTRACT vector of expression values for single gene
+    single.gene.exp <- QNORM[,i]
+    
+    # GENERATE data frame of the expression vector and the target PCs
+    data.tmp <- data.frame(geneexp = single.gene.exp, TARGETPCs)
+    
+    # USE lm to fit PCs
+    # GET residuals
+    # ADD to output 'exp.resids' object and
+    # ADD column name (as gene symbol)
+    PCfit <- lm(geneexp~.,data=data.tmp)
+    PCfit.resids <- as.data.frame(PCfit$residuals)
+    colnames(PCfit.resids) <- colnames(QNORM)[i]
+    index_list[[i]] <- PCfit.resids
+  }
+  OUTPUT_FILE <- do.call(cbind, index_list)
+}
+```
